@@ -20,12 +20,12 @@ CASAUTOENROLL = false
 -- Used to define busy frequencies in the CAS script.
 RADIOFREQS = {
     [1] = { -- Red
-        ["AIRFIELD"] = 111, -- I need to figure out how to work this out
+        ["AIRFIELD"] = 111, -- CHANGE THIS TO A LIST AND CONCAT IT ONTO THE BUSY FREQ LIST. LIST SHOULD JUST BE ALL THE COALITION AIRFIRLEDS IN THE MIZ
         ["EWR"] = 125,
         ["MUSIC"] = 136
     },
     [2] = { -- Blue
-        ["AIRFIELD"] = 111, -- I need to figure out how to work this out
+        ["AIRFIELD"] = 111, -- CHANGE THIS TO A LIST AND CONCAT IT ONTO THE BUSY FREQ LIST. LIST SHOULD JUST BE ALL THE COALITION AIRFIRLEDS IN THE MIZ
         ["EWR"] = 255,
         ["MUSIC"] = 265
     }
