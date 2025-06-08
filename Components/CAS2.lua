@@ -103,6 +103,7 @@ function cas.loop()
     for groupName, groupInfo in pairs(groups) do
         local group = Group.getByName(groupName)
         if group then
+            -- ASSIGN THE FREQUENCIES HERE DUM DUM!
             cas.checkGroup(groupName)
         else
             if groups[groupName].markups.radio then
