@@ -46,12 +46,7 @@ local stackPoints = {
     [1] = {},
     [2] = {}
 }
-local casOffset = {
-    -- For red we use FM as the default frequency, this is becasue red helis have good FM radios.
-    [1] = math.max(CASFREQS[1][1]["min"], CASFREQS[2][1]["min"]),
-    -- For blue we use AM as the default frequency, this is becasue blue everything have good AM radios.
-    [2] = (math.max(CASFREQS[1][0]["min"], CASFREQS[2][0]["min"]) - math.min(CASFREQS[1][0]["min"], CASFREQS[2][0]["min"])),
-}
+
 cas.loopInterval = 5
 cas.battleLoopInterval = 9
 cas.engagementDistance = 3000
