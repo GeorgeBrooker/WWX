@@ -17,6 +17,22 @@ AACount = 6
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
 
+-- Used to define busy frequencies in the CAS script.
+RADIOFREQS = {
+    [1] = { -- Red
+        ["AIRFIELD"] = 111, -- I need to figure out how to work this out
+        ["EWR"] = 125,
+        ["MUSIC"] = 136
+    },
+    [2] = { -- Blue
+        ["AIRFIELD"] = 111, -- I need to figure out how to work this out
+        ["EWR"] = 255,
+        ["MUSIC"] = 265
+    }
+}
+-- Ranges should be rounded to the lowest mhz with 0.5 of headroom. CAS script will generate an int in the range min max and then randomly add 0.5 to it.
+-- This is to ensure that the frequency is always within the range of the radio, and enable use of decimal frequencies without too much hassle.
+
 CASFREQS = {
     [1] = { -- RED coalition
         [0] = { -- AM Modulation
@@ -27,22 +43,23 @@ CASFREQS = {
         [1] = { -- FM Modulation
             ["main"] = 45,
             ["min"] = 20,
-            ["max"] = 59.9,
+            ["max"] = 59,
         }
     },
     [2] = { -- BLUE coalition
         [0] = { -- AM Modulation
             ["main"] = 225,
-            ["min"] = 227,
+            ["min"] = 225,
             ["max"] = 399,
         },
         [1] = { -- FM Modulation
             ["main"] = 40,
             ["min"] = 30,
-            ["max"] = 87.975,
+            ["max"] = 87,
         }
     }
 }
+
 -- 0 = AM, 1 = FM Units will transmit on both frequencies but this defines the primary frequency
 BLUECASMOD = 0 
 REDCASMOD = 1

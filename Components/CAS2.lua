@@ -14,6 +14,17 @@ local casGroups = {
 local groups = {
 
 }
+local busyFrequencies = {
+    [1] = { -- Red
+        [0] = {CASFREQS[1][0]["main"], RADIOFREQS[1]["AIRFIELD"], RADIOFREQS[1]["EWR"], RADIOFREQS[1]["MUSIC"]}, -- AM
+        [1] = {CASFREQS[2][1]["main"], }, -- FM
+    },
+    [2] = { -- Blue
+        [0] = {CASFREQS[2][0]["main"], RADIOFREQS[2]["AIRFIELD"], RADIOFREQS[2]["EWR"], RADIOFREQS[2]["MUSIC"]}, -- AM
+        [1] = {CASFREQS[2][1]["main"], }, -- FM
+    },
+
+}
 local stoppedGroups = {
 
 }
@@ -35,7 +46,12 @@ local stackPoints = {
     [1] = {},
     [2] = {}
 }
-
+local casOffset = {
+    -- For red we use FM as the default frequency, this is becasue red helis have good FM radios.
+    [1] = math.max(CASFREQS[1][1]["min"], CASFREQS[2][1]["min"]),
+    -- For blue we use AM as the default frequency, this is becasue blue everything have good AM radios.
+    [2] = (math.max(CASFREQS[1][0]["min"], CASFREQS[2][0]["min"]) - math.min(CASFREQS[1][0]["min"], CASFREQS[2][0]["min"])),
+}
 cas.loopInterval = 5
 cas.battleLoopInterval = 9
 cas.engagementDistance = 3000
@@ -44,7 +60,9 @@ cas.casHeight = 1000
 cas.casRadius = 4000
 
 function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation)
-    groups[groupName] = { currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {}}
+    local amFreq = cas.generateFrequency(coalitionId, 0) -- AM Frequency
+    local fmFreq = cas.generateFrequency(coalitionId, 1) -- FM Frequency
+    groups[groupName] = { amFreq = amFreq, fmFreq = fmFreq, currentPoint = {}, heading = 0, coalitionId = coalitionId, groupName = groupName, callsign = callsign, jtacType = jtacType, followStartTime = timer:getTime(), inContact = false, contactStartTime = -1, isMoving = false, targetGroups = {}, smokeTime = -1, smokeColor = -1, markups = {radio = {}, bearings = {}}, lasers = {} }
     local follwingGroup = Group.getByName(groupName)
     if follwingGroup then
         local followingController = follwingGroup:getController()
@@ -58,6 +76,33 @@ function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, 
             followingController:setCommand(cmd)
         end
     end
+end
+function cas.generateFrequency(coalitionId, modulation)
+    local frequency = math.random(CASFREQS[coalitionId][modulation]["min"], CASFREQS[coalitionId][modulation]["max"])
+    if math.random(0, 1) == 1 then
+        frequency = frequency + 0.5
+    end
+
+    local iters = 0 -- Stop this from fucking everything up if it dosn't work for some reason.
+    while cas.isFreqBusy(frequency, coalitionId, modulation) and iters < 10 do
+        frequency = math.random(CASFREQS[coalitionId][modulation]["min"], CASFREQS[coalitionId][modulation]["max"])
+        if math.random(0, 1) == 1 then
+            frequency = frequency + 0.5
+            iters = iters + 1
+        end
+    end
+
+    return frequency
+end
+function cas.isFreqBusy(frequency, coalitionId, modulation)
+    local isBusy = false
+    for _, busyFreq in pairs(busyFrequencies[coalitionId][modulation]) do
+        if math.abs(frequency - busyFreq) < 0.5 then
+            isBusy = true
+            break
+        end
+    end
+    return isBusy
 end
 function cas.loop()
     for groupName, groupInfo in pairs(groups) do
@@ -266,9 +311,27 @@ This does not supercede the CAS Stack which will enroll a user in all messages f
 The function sends out each message twice (one on the FM frequency for helicopters and one on the AM frequency for planes)
 ]]
 function cas.transmitMessages(casController, casMessage)
+    if casController:getGroup() then
+        if casController:getGroup():getUnits() then
+            local units = casController.getGroup():getUnits()
+            env.info("CAS2: TRANSMIT MESSAGES: Cas group " .. casController:getGroup():getName() .. " has " .. #units .. " units.", false)
+            if units.length > 3 then
+                env.info("CAS2: TRANSMIT MESSAGES: Cas group " .. casController:getGroup():getName() .. " has at least 4 units, performing broad spectrum transmission (AM, CAS, FM).", false)
+                -- Transmit cry for help on FM frequency
+
+            elseif units.length > 2 then
+                env.info("CAS2: TRANSMIT MESSAGES: Cas group " .. casController:getGroup():getName() .. " has at least 3 units, performing help and default transmission.", false)
+            else
+                env.info("CAS2: TRANSMIT MESSAGES: Cas group " .. casController:getGroup():getName() .. " has only 1 unit, performing help and default transmission.", false)
+            end
+        end
+    end
+    
+    casController.getGroup().getUnits()
     -- Save the custom frequency and modulation for the group & set the cas message
     local groupFreq = groups[casController:getGroup():getName()].frequency
     local groupModulation = groups[casController:getGroup():getName()].modulation
+    local coalitionId = casController:getGroup().coalitionId
     local casMsg = {
         id = 'TransmitMessage',
         params = {
