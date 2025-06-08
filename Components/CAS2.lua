@@ -192,16 +192,7 @@ function cas.designationLoop()
                 cas.groupMarkups(v.currentPoint, k, v.inContact)
                 local casController = casGroup:getController()
                 if casController then
-                    local msg = {
-                        id = 'TransmitMessage',
-                        params = {
-                            duration = 30,
-                            subtitle = casMessage,
-                            loop = false,
-                            file = "l10n/DEFAULT/Alert.ogg",
-                        }
-                    }
-                    casController:setCommand(msg)
+                    cas.transmitMessages(casController, casMessage)
                     for groupName, active in pairs(casGroups[v.coalitionId]) do
                         local group = Group.getByName(groupName)
                         if group then
@@ -266,6 +257,63 @@ function cas.stackLoop()
     cas.searchCasZones()
     cas.trackCas()
     timer.scheduleFunction(cas.stackLoop, nil, timer:getTime() + 25)
+end
+--[[ 
+The purpose of this function is to have each CAS group send messages on multiple frequencies
+This will allow a user to tune into a private frequency for each group and avoid being spammed by messages from other groups
+each unit will also send a message on the main CAS frequency with their frequency and callsign so users can tune in. 
+This does not supercede the CAS Stack which will enroll a user in all messages from all groups regardless of frequency.
+The function sends out each message twice (one on the FM frequency for helicopters and one on the AM frequency for planes)
+]]
+function cas.transmitMessages(casController, casMessage)
+    local groupFreq = groups[casController:getGroup():getName()].frequency
+    local groupModulation = groups[casController:getGroup():getName()].modulation
+    -- First transmit global message on the plane CAS frequency
+    cas.changeFreq(casController, REDPLANECASFREQ, REDPLANECASMOD)
+    local msg = cas.generateCallForHelp(casController, groupFreq, groupModulation)
+    casController:setCommand(msg)
+    
+    local msg = {
+        id = 'TransmitMessage',
+        params = {
+            duration = 30,
+            subtitle = casMessage,
+            loop = false,
+            file = "l10n/DEFAULT/Alert.ogg",
+        }
+    }
+    casController:setCommand(msg)
+end
+function cas.generateCallForHelp(casController, groupFreq, groupModulation)
+    local groupName = casController:getGroup():getName()
+    local callsign = groups[groupName].callsign
+    local message = "This is " .. callsign .. ". We are in contact with enemy forces! Our frequency is " .. groupFreq .. " MHz " .. (groupModulation == 0 and "AM" or "FM") .. "."
+    local msg = {
+        id = 'TransmitMessage',
+        params = {
+            duration = 30,
+            subtitle = message,
+            loop = false,
+            file = "l10n/DEFAULT/Alert.ogg",
+        }
+    }
+    return msg
+end
+function cas.changeFreq(casController, frequency, modulation)
+    -- Handle text based modulation input
+    if modulation == "AM" then
+        modulation = 0
+    elseif modulation == "FM" then
+        modulation = 1
+    end
+
+    local cmd = {}
+    cmd.id = "SetFrequency"
+    cmd.params = {}
+    cmd.params.frequency = tonumber(frequency) * 1000000
+    cmd.params.modulation = modulation
+    cmd.params.power = 120
+    casController:setCommand(cmd)
 end
 function cas.searchCasZones()
     for c = 1,2 do

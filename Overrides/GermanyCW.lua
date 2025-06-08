@@ -18,6 +18,26 @@ CSARAUTOENROLL = true
 CASAUTOENROLL = false
 BLUECASFREQ = 225
 REDCASFREQ = 45
+REDCASRANGE = {
+    [0] = { -- AM Modulation
+        ["min"] = 118,
+        ["max"] = 150, -- Most aircraft can go to 399mhz but the mig19 limits this
+    },
+    [1] = { -- FM Modulation
+        ["min"] = 20,
+        ["max"] = 59.9,
+    }
+}
+BUECASRANGE = {
+    [0] = { -- AM Modulation
+        ["min"] = 225,
+        ["max"] = 399,
+    },
+    [1] = { -- FM Modulation
+        ["min"] = 30,
+        ["max"] = 87.975,
+    }
+}
 BLUECASMOD = 0
 REDCASMOD = 1
 
