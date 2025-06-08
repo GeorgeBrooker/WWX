@@ -16,29 +16,35 @@ AACount = 6
 -- settings
 CSARAUTOENROLL = true
 CASAUTOENROLL = false
-BLUECASFREQ = 225
-REDCASFREQ = 45
-REDCASRANGE = {
-    [0] = { -- AM Modulation
-        ["min"] = 118,
-        ["max"] = 150, -- Most aircraft can go to 399mhz but the mig19 limits this
+
+CASFREQS = {
+    [1] = { -- RED coalition
+        [0] = { -- AM Modulation
+            ["main"] = 120,
+            ["min"] = 122,
+            ["max"] = 150, -- Most aircraft can go to 399mhz but the mig19 limits this
+        },
+        [1] = { -- FM Modulation
+            ["main"] = 45,
+            ["min"] = 20,
+            ["max"] = 59.9,
+        }
     },
-    [1] = { -- FM Modulation
-        ["min"] = 20,
-        ["max"] = 59.9,
+    [2] = { -- BLUE coalition
+        [0] = { -- AM Modulation
+            ["main"] = 225,
+            ["min"] = 227,
+            ["max"] = 399,
+        },
+        [1] = { -- FM Modulation
+            ["main"] = 40,
+            ["min"] = 30,
+            ["max"] = 87.975,
+        }
     }
 }
-BUECASRANGE = {
-    [0] = { -- AM Modulation
-        ["min"] = 225,
-        ["max"] = 399,
-    },
-    [1] = { -- FM Modulation
-        ["min"] = 30,
-        ["max"] = 87.975,
-    }
-}
-BLUECASMOD = 0
+-- 0 = AM, 1 = FM Units will transmit on both frequencies but this defines the primary frequency
+BLUECASMOD = 0 
 REDCASMOD = 1
 
 Platoons = {

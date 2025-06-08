@@ -266,14 +266,10 @@ This does not supercede the CAS Stack which will enroll a user in all messages f
 The function sends out each message twice (one on the FM frequency for helicopters and one on the AM frequency for planes)
 ]]
 function cas.transmitMessages(casController, casMessage)
+    -- Save the custom frequency and modulation for the group & set the cas message
     local groupFreq = groups[casController:getGroup():getName()].frequency
     local groupModulation = groups[casController:getGroup():getName()].modulation
-    -- First transmit global message on the plane CAS frequency
-    cas.changeFreq(casController, REDPLANECASFREQ, REDPLANECASMOD)
-    local msg = cas.generateCallForHelp(casController, groupFreq, groupModulation)
-    casController:setCommand(msg)
-    
-    local msg = {
+    local casMsg = {
         id = 'TransmitMessage',
         params = {
             duration = 30,
@@ -282,7 +278,29 @@ function cas.transmitMessages(casController, casMessage)
             file = "l10n/DEFAULT/Alert.ogg",
         }
     }
+    local freq = nil
+    local mod = nil
+
+    -- First transmit global message on the FM cas frequency
+    cas.changeFreq(casController, CASFREQS[coalitionId][1]["main"], groupModulation)
+    freq = groups[casController:getGroup():getName()].frequency
+    mod = groups[casController:getGroup():getName()].modulation
+    local msg = cas.generateCallForHelp(casController, groupFreq, groupModulation)
     casController:setCommand(msg)
+
+    -- Then transmit global message on the AM cas frequency
+    cas.changeFreq(casController, CASFREQS[coalitionId][0]["main"], groupModulation)
+    freq = groups[casController:getGroup():getName()].frequency
+    mod = groups[casController:getGroup():getName()].modulation
+    msg = cas.generateCallForHelp(casController, groupFreq, groupModulation)
+    casController:setCommand(msg)
+
+    -- Transmit the cas message on the FM frequency
+    cas.changeFreq(casController, groupFreq, groupModulation)
+    casController:setCommand(casMsg)
+    -- Transmit the cas message on the AM frequency via LUT
+    cas.changeFreq(casController, cas.getAmFromFm(groupFreq), groupModulation == 0 and 1 or 0) -- Switch modulation
+    casController:setCommand(casMsg)
 end
 function cas.generateCallForHelp(casController, groupFreq, groupModulation)
     local groupName = casController:getGroup():getName()

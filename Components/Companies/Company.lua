@@ -48,9 +48,9 @@ cm.casModulation = {
     [2] = 0,
 }
 if CAS then
-    cm.casFreqs[1] = REDCASFREQ
+    cm.casFreqs[1] = CASFREQS[1][REDCASMOD]["main"]
     cm.casModulation[1] = REDCASMOD
-    cm.casFreqs[2] = BLUECASFREQ
+    cm.casFreqs[2] = CASFREQS[2][BLUECASMOD]["main"]
     cm.casModulation[2] = BLUECASMOD
 end
 Company = {
