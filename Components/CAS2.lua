@@ -354,10 +354,35 @@ function cas.transmitMessages(casController, casMessage)
 end
 function cas.assignFrequencies(casController, frequency, modulation)
     if casController:getGroup() then
+        local group = casController:getGroup()
+        local groupProperties = groups[group:getName()]
         if casController:getGroup():getUnits() then
+            local defaultBand = groupProperties.modulation
+            local defaultFreq = groupProperties.amFreq and defaultBand == 0 or groupProperties.fmFreq
+            local altBand = defaultBand == 0 and 1 or 0 -- Opposite of default band
+            local altFreq = groupProperties.amFreq and altBand == 0 or groupProperties.fmFreq
+
             local units = casController:getGroup():getUnits()
-            -- ASSIGN as many frequencies as you can, starting with the most imporant ones. then just step though all units and get them to send message, this will prevent unncecary branching
-            env.info("CAS2: TRANSMIT MESSAGES: Cas group " .. casController:getGroup():getName() .. " has " .. #units .. " units.", false)
+            -- If the number of units is 4 or less we dont assign anything and just fallback on using the group global cas frequency
+            if #units <= 4 then
+                -- Do nothing, the group will use the global CAS frequency
+                env.info("CAS2: TRANSMIT MESSAGES: Cas group " .. casController:getGroup():getName() .. " has 4 or less units, using global CAS frequency.", false)
+            else
+                for i = 1, 4 do
+                    local unit = units[i]
+                    if unit then
+                        local unitController = unit:getController()
+                        if unitController then
+                            -- Assign the default frequency and modulation to the first 4 units
+                            if i <= 2 then
+                                cas.changeFreq(unitController, defaultFreq, defaultBand)
+                            else
+                                cas.changeFreq(unitController, altFreq, altBand)
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end
@@ -376,7 +401,7 @@ function cas.generateCallForHelp(casController, groupFreq, groupModulation)
     }
     return msg
 end
-function cas.changeFreq(casController, frequency, modulation)
+function cas.changeFreq(controller, frequency, modulation)
     -- Handle text based modulation input
     if modulation == "AM" then
         modulation = 0
@@ -390,7 +415,7 @@ function cas.changeFreq(casController, frequency, modulation)
     cmd.params.frequency = tonumber(frequency) * 1000000
     cmd.params.modulation = modulation
     cmd.params.power = 120
-    casController:setCommand(cmd)
+    controller:setCommand(cmd)
 end
 function cas.searchCasZones()
     for c = 1,2 do
