@@ -46,6 +46,7 @@ local stackPoints = {
     [1] = {},
     [2] = {}
 }
+local targetKillers = {}
 
 cas.loopInterval = 5
 cas.battleLoopInterval = 9
@@ -53,6 +54,53 @@ cas.engagementDistance = 3000
 cas.dangerClose = 1200
 cas.casHeight = 1000
 cas.casRadius = 4000
+
+
+local casEvents = {}
+function casEvents:onEvent(event)
+    if event then
+        -- on kill
+        if (event.id == world.event.S_EVENT_KILL) then
+            env.info("Kill event", false)
+            local eventInit = event.initiator
+            local eventTgt = event.target
+            if eventInit and eventTgt then
+                env.info("initiator and target", false)
+                if eventInit.getPlayerName then
+                local casPlayerName = eventInit:getPlayerName()
+                    env.info("has player name", false)
+                    if casPlayerName then
+                        env.info("Player kill: " .. Utils.dump(eventInit), false)
+                        local targetName = eventTgt:getName()
+                        local isCasTarget = false
+                        local groupDefended = nil
+                        for k,v in pairs(groups) do
+                            local targets = v.targetGroups
+                            if targets then
+                                for groupName, groupInfo in pairs(targets) do
+                                    if string.find(targetName, groupName) then
+                                        env.info("Kill matched. Unit: " ..targetName .. " Group: " ..groupName, false)
+                                        isCasTarget = true
+                                        groupDefended = k
+                                    end
+                                end
+                            end
+                        end
+                        if isCasTarget and groupDefended then
+                            env.info("Valid CAS Kill", false)
+                            if targetKillers[groupDefended] == nil then
+                                targetKillers[groupDefended] = {}
+                            end
+                            targetKillers[groupDefended][casPlayerName] = true
+                            env.info("Kill event done", false)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+world.addEventHandler(casEvents)
 
 function CAS.followGroup(coalitionId, groupName, callsign, jtacType, frequency, modulation)
     local amFreq = cas.generateFrequency(coalitionId, 0) -- AM Frequency
@@ -223,6 +271,17 @@ function cas.designationLoop()
             else
                 groupCount = groupCount - 1
                 casMessage = "Target destroyed!"
+                if targetKillers[k] then
+                    for playerName, groupId in pairs(targetKillers[k]) do
+                        if WWEvents then
+                            WWEvents.playerCasMissionCompleted(playerName, v.coalitionId, " killed an enemy group in contact with " .. v.callsign)
+                        end
+                        trigger.action.outTextForGroup(groupId, "You have destroyed an enemy group in contact with " .. v.callsign .. "!", 15, false)
+                    end
+                else
+                    env.info("No players killed enemies for this group: " .. k, false)
+                end
+                targetKillers[k] = nil
                 v.targetGroups[group] = nil
             end
         end
