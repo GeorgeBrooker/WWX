@@ -345,6 +345,19 @@ DFS.templates = {
             ["x"] = 0,
         },
     },
+    [5] = { -- C130 Paletised torpedo
+        ["big"] = {
+            ["mass"] = todo,
+            ["heading"] = 0,
+            ["shape_name"] = "todo",
+            ["canCargo"] = todo,
+            ["type"] = "todo",
+            ["name"] = "",
+            ["category"] = "todo",
+            ["y"] = 0,
+            ["x"] = 0,
+        },
+    }
 }
 DFS.groupNames = {
     [1] = {
