@@ -5,14 +5,15 @@ local deliveredRepair = {
 
 }
 local RESPAWNGROUPS = {
-    [exampleGroup] = {
-        repairType = "AUTO", -- AUTO/MANUAL/BOTH
+    [exampleSAMGroup] = {
+        repairType = "BOTH", -- AUTO/MANUAL/BOTH
         repairCost = {
             [DFS.supplyType.FUEL] = 10,
             [DFS.supplyType.AMMO] = 10,
             [DFS.supplyType.EQUIPMENT] = 10
         },
         repairTime = 300, --time in seconds to repair (used when repair is AUTO or BOTH)
+        type = "repair a SAM" -- Flavour text for supply messages (type of repair)
     }
 }
 DFS = {}
@@ -2851,8 +2852,33 @@ function DFS.spawnCargo(param)
     dfc.trackCargo({coalition = param.coalition, cargo = newCargo, supplyType = param.supplyType, spawnTime = timer:getTime(), seaPickup = param.seaPickup, frontPickup = param.frontPickup, groupId = param.groupId, isSlung = true, modifier = param.modifier, groupName = param.groupName, successfulDeployChecks = 0})
 end
 -- if none found we must return circumfrence of earth as the value
-function dfc.findClosestRepairable(cargoPoint, coalition)
-    
+function dfc.findClosestRepairable(location, coalition)
+    if RESPAWNGROUPS == nil then
+        return 40075000 -- circumference of earth if we cannot find any repairables
+    end
+    local currentDist = 40075000
+    local closestRepairable = {name = nil, distance = currentDist}
+    for i=1, #RESPAWNGROUPS do
+        local repairable = RESPAWNGROUPS[i]
+        local repairableGroup = Group.getByName(repairable)
+        if repairableGroup then
+            local repairableUnit = repairableGroup:getUnit(1)
+            if repairableUnit then
+                local repairableCoalition = repairableUnit:getCoalition()
+                if repairableCoalition == coalition then
+                    local repairablePoint = repairableUnit:getPoint()
+                    if repairablePoint then
+                        local distance = Utils.PointDistance(location, repairablePoint)
+                        if distance < currentDist then
+                            currentDist = distance
+                            closestRepairable = {name = repairable, distance = distance}
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closestRepairable
 end
 function dfc.updateRepairable(params) -- change to params
     local repairable = params.repairable
@@ -2882,7 +2908,7 @@ function dfc.updateRepairable(params) -- change to params
 
 end
 function dfc.repairCargoAccepted(supplyType, repairable)
-
+    return RESPAWNGROUPS[repairable].repairCost[supplyType] > 0 and RESPAWNGROUPS[repairable].repairType != "AUTO"
 end
 --coalition, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName, successfulDeployChecks
 function dfc.trackCargo(param)
@@ -2936,21 +2962,21 @@ function dfc.trackCargo(param)
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
                         end
-                        if closestRepairableToCargo and distanceToClosestFb and (closestRepairableToCargo.distance < closestDepotToCargo.distance) and (closestRepairableToCargo.distance < distanceToClosestFb) and dfc.repairCargoAccepted(param.supplyType, closestRepairableToCargo) then
+                        if closestRepairableToCargo and distanceToClosestFb and (closestRepairableToCargo.distance < closestDepotToCargo.distance) and (closestRepairableToCargo.distance < distanceToClosestFb) and dfc.repairCargoAccepted(param.supplyType, closestRepairableToCargo.name) then
                             if SBS then
                                 SBS.endWatch(cargo)
                             end
-                            dfc.updateRepairable(closestRepairableToCargo, param.coalition, param.supplyType, param.modifier)
+                            dfc.updateRepairable(closestRepairableToCargo.name, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, cloestRepairableToCargo.type)
                             return
-                        elseif closestRepairableToCargo and (closestRepairableToCargo.distance < closestDepotToCargo.distance) and dfc.repairCargoAccepted(param.supplyType, closestRepairableToCargo) then
+                        elseif closestRepairableToCargo and (closestRepairableToCargo.distance < closestDepotToCargo.distance) and dfc.repairCargoAccepted(param.supplyType, closestRepairableToCargo.name) then
                             if SBS then
                                 SBS.endWatch(cargo)
                             end
-                            dfc.updateRepairable(closestRepairableToCargo, param.coalition, param.supplyType, param.modifier)
+                            dfc.updateRepairable(closestRepairableToCargo.name, param.coalition, param.supplyType, param.modifier)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
@@ -3048,11 +3074,13 @@ function dfc.supplyEvent(deliverGroupName, supplyType, modifier, deliveryLocatio
                 if supplyType == DFS.supplyType.GUN then
                     supplyTypeName = "a gun"
                 end
-                local deliveryLocationMsg = "front depot"
+                local deliveryLocationMsg = deliveryLocation
                 if deliveryLocation == "REAR" then
                     deliveryLocationMsg = "rear depot"
                 elseif deliveryLocation == "FIREBASE" then
                     deliveryLocationMsg = "firebase"
+                elseif deliveryLocation == "FRONT" then
+                    deliveryLocationMsg = "front depot"
                 end
                 dfc.updateSupplyMission({playerName = deliverPlayer, deliverGroup = deliverGroup, supplyType = supplyType, modifier = modifier, deliveryLocationMsg = deliveryLocationMsg})
             else
