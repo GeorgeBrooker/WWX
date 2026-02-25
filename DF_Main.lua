@@ -2878,6 +2878,8 @@ function dfc.findClosestRepairable(location, coalition)
             end
         end
     end
+    -- get centre point of closet repairable
+    closestRepairable.distance = Utils.PointDistance(location, Utils.getGroupAvgPoint(closestRepairable.name))
     return closestRepairable
 end
 function dfc.updateRepairable(params) -- change to params

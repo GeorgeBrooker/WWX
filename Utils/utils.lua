@@ -203,7 +203,28 @@ function Utils.getGroupPoint(groupName)
     end
     return returnPoint
 end
-
+function Utils.getGroupAvgPoint(groupName)
+    local returnPoint = nil
+    local group = Group.getByName(groupName)
+    if group then
+        local units = group:getUnits()
+        if units and #units > 0 then
+            local sumX, sumY, sumZ = 0, 0, 0
+            for i=1, #units do
+                local unit = units[i]
+                local point = unit:getPoint()
+                if point then
+                    sumX = sumX + point.x
+                    sumY = sumY + point.y
+                    sumZ = sumZ + point.z
+                end
+            end
+            local count = #units
+            returnPoint = {x = sumX / count, y = sumY / count, z = sumZ / count}
+        end
+    end
+    return returnPoint
+end
 function Utils.fileExists(file)
     local f = io.open(file, 'rb')
     if f then f:close() end
