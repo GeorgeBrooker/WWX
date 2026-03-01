@@ -759,6 +759,7 @@ function dfcEvents:onEvent(event)
         if event.initiator and event.initiator.getGroup then
             local group = event.initiator:getGroup()
             if group then
+                dfc.addDebugMenuForRepair(event.initiator:getGroup():getName())
                 dfc.addRadioCommandsForGroup(event.initiator:getGroup():getName(), event.initiator:getDesc().category == 0 )
                 if DFS.heloCapacities[event.initiator:getTypeName()] then
                     local dropMenu, troopsMenu = dfc.addRadioCommandsForCargoGroup(event.initiator:getGroup():getName())
@@ -3380,6 +3381,21 @@ function dfc.addRadioCommandsForMADGroup(groupName)
         if MAD then
             MAD.addCommand(groupName)
         end
+    end
+end
+function dfc.addDebugMenuForRepair(groupName)
+    local addGroup = Group.getByName(groupName)
+    if addGroup then
+        local repairMenu = missionCommands.addSubMenuForGroup(addGroup:getID(), "Repair Debug", nil)
+        for repairableName, repairableData in pairs(RESPAWNGROUPS) do
+            missionCommands.addCommandForGroup(addGroup:getID(), "Kill group " .. repairableName, repairMenu, dfc.killGroup, repairableName)
+        end
+    end
+end
+function dfc.killGroup(groupName)
+    local group = Group.getByName(groupName)
+    if group then
+        group:destroy()
     end
 end
 function dfc.addRadioCommandsForCargoGroup(groupName)
