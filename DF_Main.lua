@@ -13,7 +13,8 @@ local RESPAWNGROUPS = {
             [DFS.supplyType.EQUIPMENT] = 10
         },
         repairTime = 300, --time in seconds to repair (used when repair is AUTO or BOTH)
-        type = "repair a SAM" -- Flavour text for supply messages (type of repair)
+        type = "repair a SAM", -- Flavour text for supply messages (type of repair)
+        notifyOnDestruction = true, -- whether to notify players when this group is destroyed, if not set it will default to false
     }
 }
 DFS = {}
@@ -2158,29 +2159,85 @@ function dfc.respawnLoop()
         else
             groupDead = true
         end
-        if groupDead and RESPAWNGROUPS[groupName].repairType == "AUTO" then
-            groupParams = {
+        if groupDead and RESPAWNGROUPS[groupName].repairing ~= true then
+            RESPAWNGROUPS[groupName].repairing = true -- a lot of the functions here rely on the group still being in the respawn table until its actually repaired so im using a flag.
+            if RESPAWNGROUPS[groupName].notifyOnDestruction then
+                local respawnTimeStr
+                if math.floor(RESPAWNGROUPS[groupName].repairTime/60) < 1 then respawnTimeStr = "less than a minute" else respawnTimeStr = math.floor(RESPAWNGROUPS[groupName].repairTime/60) .. " minutes" end
+                if RESPAWNGROUPS[groupName].repairType == "MANUAL" then
+                    respawnTime = "when resupplied by airlift"
+                elseif RESPAWNGROUPS[groupName].repairType == "BOTH" then
+                    respawnTime = "in " .. respawnTimeStr .. " or when resupplied by airlift" 
+                else
+                    respawnTime = "in " .. respawnTimeStr
+                end
+                trigger.action.outText("Respawn group " .. groupName .. " has been destroyed! It will be repaired " .. respawnTime .. ".", 15, false)    
+            end
+            local groupParams = {
                 name = groupName,
                 time = respawnTime,
                 cost = RESPAWNGROUPS[groupName].repairCost,
-                type = RESPAWNGROUPS[groupName].repairType
+                type = RESPAWNGROUPS[groupName].repairType,
             }
             env.info("Respawn group " .. groupName .. " is dead, scheduling respawn", false)
             timer.scheduleFunction(dfc.respawnRespawnGroup, groupParams, timer:getTime() + respawnTime)
-            RESPAWNGROUPS[groupName].repairTime = nil
+            if RESPAWNGROUPS[groupName].notifyOnDestruction then
+                local coalition = Group.getByName(groupName) and Group.getByName(groupName):getUnit(1) and Group.getByName(groupName):getUnit(1):getCoalition() or nil
+                local notifyParams = {
+                    name = groupName,
+                    coalition = coalition,
+                    markId = nil
+                }
+                timer.scheduleFunction(dfc.respawnDrawing, notifyParams, timer:getTime() + 5)
+                timer.scheduleFunction(dfc.respawnNotifier, notifyParams, timer:getTime() + 10)
+            end
         end
     end
     timer.scheduleFunction(dfc.respawnLoop, nil, timer:getTime() + 10)
 end
+function dfc.respawnNotifier(param)
+    if param.markId then
+        trigger.action.removeMark(param.markId)
+    end
+    if RESPAWNGROUPS[param.name] then
+        local groupPoint = Utils.getGroupAvgPoint(param.name)
+        local fontSize = 18
+        if groupPoint then
+            local respawnTimeStr
+            if math.floor(RESPAWNGROUPS[param.name].repairTime/60) < 1 then respawnTimeStr = "less than a minute" else respawnTimeStr = math.floor(RESPAWNGROUPS[param.name].repairTime/60) .. " minutes" end
+            local repairText = "This site has been destroyed!"
+            if RESPAWNGROUPS[param.name].repairType == "MANUAL" then
+                repairText = repairText .. "\nIt can be repaired by resupplying it with an airlift."
+            elseif RESPAWNGROUPS[param.name].repairType == "AUTO" then
+                repairText = repairText .. "\nit will automatically respawn in " .. respawnTimeStr .. "."
+            else
+                repairText = repairText .. "\nIt will automatically respawn in " .. respawnTimeStr .. ".\nOr by resupply with:\n"
+                repairText = repairText .. RESPAWNGROUPS[param.name].repairCost[DFS.supplyType.EQUIPMENT] .. " equipment\n"
+                repairText = repairText .. RESPAWNGROUPS[param.name].repairCost[DFS.supplyType.AMMO] .. " ammo\n"
+                repairText = repairText .. RESPAWNGROUPS[param.name].repairCost[DFS.supplyType.FUEL] .. " fuel"
+            end
+            local markId = DrawingTools.newMarkId()
+            param.markId = markId
+            trigger.action.textToAll(param.coalition, markId, groupPoint, {0,0,0,1}, {0,0,0,0}, fontSize, true, repairText)
+        end
+        timer.scheduleFunction(dfc.respawnNotifier, param, timer:getTime() + 30)
+    end
+end
 --groupName, respawnTime
 function dfc.respawnRespawnGroup(param)
-    local newGroupName = mist.cloneGroup(param.name, true).name
-    RESPAWNGROUPS[newGroupName] = {
-        repairType = param.type,
-        repairCost = param.cost,
-        repairTime = param.time
-    }
-    env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.time, false)
+    if RESPAWNGROUPS[param.name] then
+        if deliveredRepair[param.name] then
+            deliveredRepair[param.name] = nil
+        end
+        local newGroupName = mist.cloneGroup(param.name, true).name
+        RESPAWNGROUPS[newGroupName] = {
+            repairType = param.type,
+            repairCost = param.cost,
+            repairTime = param.time
+        }
+        env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.time, false)
+        RESPAWNGROUPS[param.name] = nil
+    end
 end
 function dfc.checkNoFlyZones()
     dfc.checkNoFlyZone(1)
@@ -2894,7 +2951,7 @@ function dfc.updateRepairable(params) -- change to params
                 [DFS.supplyType.EQUIPMENT] = 0,
         }
     end
-    deliveredRepair[repairable][supplyType] += DFS.status.playerResupplyAmts[supplyType][modifier]
+    deliveredRepair[repairable][supplyType] = deliveredRepair[repairable][supplyType] + DFS.status.playerResupplyAmts[supplyType][modifier]
     local requirementsMet = false
     for repairCostType in RESPAWNGROUPS[repairable].repairCost do
         if RESPAWNGROUPS[repairable].repairCost[repairCostType] <= deliveredRepair[repairable][repairCostType] then
@@ -2905,12 +2962,13 @@ function dfc.updateRepairable(params) -- change to params
         end
     end
     if requirementsMet then
-        
+        env.info("Repairing " .. repairable .. " with airlifted supply", false)
+        timer.scheduleFunction(dfc.repairRespawnGroup, repairable, timer:getTime() + 1)
     end
 
 end
 function dfc.repairCargoAccepted(supplyType, repairable)
-    return RESPAWNGROUPS[repairable].repairCost[supplyType] > 0 and RESPAWNGROUPS[repairable].repairType != "AUTO"
+    return RESPAWNGROUPS[repairable].repairCost[supplyType] > 0 and RESPAWNGROUPS[repairable].repairType ~= "AUTO"
 end
 --coalition, cargo, supplyType, spawnTime, seaPickup, frontPickup, isSlung, groupId, modifier, groupName, successfulDeployChecks
 function dfc.trackCargo(param)
@@ -2919,9 +2977,9 @@ function dfc.trackCargo(param)
     if param.seaPickup then pickupZone = DFS.pickUpZones[param.coalition][2] end
     if cargo and cargo.getPoint and cargo:getPoint() then
         local closestDepotToCargo = dfc.findClosestDepot(cargo:getPoint(), param.coalition)
-        local closestRepairableToCargo = dfc.findClosestRepairable(cargo:getPoint(), param.coalition) -- 40075000 circumference of earth, as a default value this makes some checks work better. TODO put this in the actual closestrepairable function
+        local closestRepairableToCargo = dfc.findClosestRepairable(cargo:getPoint(), param.coalition) -- if there are no repairables this will return the circumference of the ekkarth so it should always be farther than the closest depot
         local closestFirebaseToCargo = nil
-        local  =  nil
+        local  distanceToClosestFb =  nil
         if param.supplyType == DFS.supplyType.AMMO or param.supplyType == DFS.supplyType.GUN then
             closestFirebaseToCargo = Firebases.getClosestFirebase(cargo:getPoint(), param.coalition)
             if closestFirebaseToCargo > 0 then
@@ -2959,7 +3017,7 @@ function dfc.trackCargo(param)
                 local cargoPoint = cargo:getPoint()
                 if cargoPoint then env.info("cargo (".. param.cargo .. ") location: " .. cargoPoint.x .. " y: " .. cargoPoint.y .. " z: " .. cargoPoint.z .. " AGL: " .. altitude, false) end
                 if (velocity.x < 0.01 and velocity.z < 0.01 and velocity.y < 0.01) and (altitude < 0.5 and altitude > -5) then
-                   param.successfulDeployChecks = param.successfulDeployChecks + 1
+                    param.successfulDeployChecks = param.successfulDeployChecks + 1
                     if param.successfulDeployChecks > 1 then
                         if distanceToClosestFb then
                             env.info(param.cargo .. ": closest firebase distance: " .. distanceToClosestFb, false)
@@ -2972,7 +3030,7 @@ function dfc.trackCargo(param)
                             if cargo and cargo:isExist() then
                                 timer.scheduleFunction(dfc.destroyStatic, param.cargo, timer.getTime() + 60)
                             end
-                            dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, cloestRepairableToCargo.type)
+                            dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, closestRepairableToCargo.type)
                             return
                         elseif closestRepairableToCargo and (closestRepairableToCargo.distance < closestDepotToCargo.distance) and dfc.repairCargoAccepted(param.supplyType, closestRepairableToCargo.name) then
                             if SBS then
@@ -2984,7 +3042,6 @@ function dfc.trackCargo(param)
                             end
                             dfc.supplyEvent(param.groupName, param.supplyType, param.modifier, closestRepairableToCargo.type)
                             return
-                        end
                         elseif (param.frontPickup == nil or param.frontPickup == false) and (((closestDepotToCargo.isRear == nil or closestDepotToCargo.isRear == false) and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius) or (closestDepotToCargo.isRear and param.seaPickup and closestDepotToCargo.distance <= DFS.status.playerDeliverRadius)) and (closestDepotToCargo.distance < closestRepairableToCargo.distance) then
                             if SBS then
                                 SBS.endWatch(cargo)
