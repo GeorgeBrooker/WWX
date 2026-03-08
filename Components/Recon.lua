@@ -69,8 +69,12 @@ function reconEvents:onEvent(event)
                     local unit = group:getUnit(1)
                     if unit then
                         local player = unit:getPlayerName()
-                        if player and event.place and event.place and event.place.getCoalition and event.place:getCoalition() == group:getCoalition() and event.place:getDesc().category == 0 then
-                            recon.processPlayerFilm(group:getCoalition(), player, group:getID())
+                        if event.place and event.place and event.place.getCoalition and event.place:getCoalition() == group:getCoalition() and event.place:getDesc().category == 0 then
+                            if player then
+                                recon.processPlayerFilm(group:getCoalition(), player, group:getID())
+                            else
+                                recon.processAiFilm(group:getCoalition(), group:getID())
+                            end
                         end
                     end
                 end
@@ -215,7 +219,11 @@ function recon.trackReconJet(reconGroupName)
                 if reconPoint and reconPos and recon.inParams(reconPos, reconPoint) then
                     local closestMission = recon.getMissionInCaptureRange(reconCoalition, reconPoint)
                     if closestMission ~= -1 then
-                        recon.captureMission(closestMission, reconUnit:getPlayerName(), reconCoalition, reconGroup:getID())
+                        local player = reconUnit:getPlayerName()
+                        if player then
+                            recon.captureMission(closestMission, reconUnit:getPlayerName(), reconCoalition, reconGroup:getID())
+                        else
+                            recon.captureAiMission(closestMission, reconGroupName, reconCoalition, reconGroup:getID())
                     end
                 end
                 timer.scheduleFunction(recon.trackReconJet, reconGroupName, timer:getTime() + 0.5)
@@ -223,6 +231,7 @@ function recon.trackReconJet(reconGroupName)
         end
     end
 end
+recon.captureAiMission
 function recon.inParams(position, point)
     local pitch = math.abs(math.asin(position.x.y))
     local roll = math.abs(math.atan2(-position.z.y, position.y.y))
@@ -256,6 +265,21 @@ function recon.captureMission(missionId, playerName, coalitionId, playerGroupId)
     end
     if #captures[playerName] < maxCaptures then
         captures[playerName][missionId] = {coalitionId = coalitionId, missionId = missionId, captureTime = timer:getTime()}
+        currentMissions[coalitionId][missionId].capturedBy = playerName
+        trigger.action.outTextForGroup(playerGroupId, "Recon Photo Captured Successfully!", 10, false)
+        if #captures[playerName] >= maxCaptures then
+            trigger.action.outTextForGroup(playerGroupId, "You are out of film. RTB to deliver your photos and collect more film!", 15, false)
+        end
+    else
+        trigger.action.outTextForGroup(playerGroupId, "You are out of film. RTB to deliver your photos and collect more film!", 15, false)
+    end
+end
+function recon.captureAiMission(missionId, groupName, coalitionId, playerGroupId)
+    if captures[groupName] == nil then
+        captures[groupName] = {}
+    end
+    if #captures[groupName] < maxCaptures then
+        captures[groupName][missionId] = {coalitionId = coalitionId, missionId = missionId, captureTime = timer:getTime()}
         currentMissions[coalitionId][missionId].capturedBy = playerName
         trigger.action.outTextForGroup(playerGroupId, "Recon Photo Captured Successfully!", 10, false)
         if #captures[playerName] >= maxCaptures then
@@ -431,6 +455,12 @@ function recon.processBP(mission, playerGroupId)
         end
     end
     trigger.action.outTextForGroup(playerGroupId, "Scouting Mission Completed!", 5, false)
+end
+function recon.processAiFilm(param)
+end
+function Recon.registerAiRecon(param)
+    currentReconJets[param.groupName] = param.ID
+    recon.trackReconJet(param.name)
 end
 --coalitionId, point
 function recon.sendAirstrike(param)
