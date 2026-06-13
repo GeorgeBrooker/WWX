@@ -1,4 +1,4 @@
-trigger.action.setUserFlag("MISSION_ID", 15)
+trigger.action.setUserFlag("MISSION_ID", 10)
 -- enabled features
 SUBS = false
 ACTIVETORP = false
@@ -8,10 +8,6 @@ SUBTYPE =
     [2] = "santafe",
 }
 CAP = true
-BULLS_OVERRIDES = {
-    ["AJS37"] = "Interceptor",
-    ["Mirage-F1BE"] = "Interceptor",
-}
 PROTECT_HELICOPTERS = true
 PIRACY = false
 BOMBERS = true
@@ -80,6 +76,7 @@ RESPAWNGROUPS = {
 	["BLUE-SHORAD-PATRIOT-1"] = 3600, --1hr
 	["RED-SHORAD-FARP-1"] = 3600, --1hr
 	["BLUE-SHORAD-HFRG38"] = 3600, --1hr
+	["BlueTanker"] = 3600, --1hr
 }
 SUNSET = 65130 -- 18:05:30 local time
 RUNTIME = 36000 -- 10 hours runtime
@@ -340,7 +337,7 @@ CSARFreqCollisions = {
             20,21,22,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,60
         },
         ["TACAN"] = {
-            24,28,32,47,48,56
+            56,118,25,95,89,47,108,24,72,77,81,28,32,70,88,116,48,14,17,23,20
         }
     },
     [2] = {
@@ -348,7 +345,7 @@ CSARFreqCollisions = {
             62,66,67,68,70,76,77,84,85,86,87,89,90,95,96,97,98
         },
         ["TACAN"] = {
-            14,17,25,77,81,84,88,89,108
+            56,118,25,95,89,47,108,24,72,77,81,28,32,70,88,116,48,14,17,23,20
         }
     }
 }
