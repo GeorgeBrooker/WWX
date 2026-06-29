@@ -2052,9 +2052,9 @@ end
 --groupName, respawnTime
 function dfc.respawnRespawnGroup(param)
     local newGroupName = mist.cloneGroup(param.groupName, true).name
-    if PERSISTENTDEATHGROUPS[param.groupName] then
-        PERSISTENTDEATHGROUPS[param.groupName] = nil
-        PERSISTENTDEATHGROUPS[newGroupName] = true
+    if PERSISTENTDEATH[param.groupName] then
+        PERSISTENTDEATH[param.groupName] = nil
+        PERSISTENTDEATH[newGroupName] = true
         env.info("Respawn group " .. newGroupName .. " added to persistent death groups\nRespawn group " .. param.groupName .. " removed from persistent death groups", false)
     end
     RESPAWNGROUPS[newGroupName] = param.respawnTime

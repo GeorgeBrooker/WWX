@@ -7,7 +7,7 @@ sblocker.tolerance = 0.1 -- 10% of initial size
 local missionName = env.mission["date"]["Year"]
 local spawnState = lfs.writedir() .. [[Logs/]] .. 'spawns'..missionName..'.txt'
 function sblocker.loop()
-    for groupName, _ in pairs(PERSISTENTDEATHGROUPS) do
+    for groupName, _ in pairs(PERSISTENTDEATH) do
         local checkgroup = Group.getByName(groupName)
         local groupDead = false
         if checkgroup then
@@ -45,7 +45,8 @@ function sblocker.loadPersistance()
     end
 end
 function sblocker.savePersistance()
-    local f = io.open(spawnState, 'w')
+    local spawnFile = spawnState
+    local f = io.open(spawnFile, 'w')
     f:write("return " .. Utils.saveToString(SBLOCKER.blockedGroups))
     f:close()
 end
