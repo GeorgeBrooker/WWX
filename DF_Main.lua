@@ -2041,7 +2041,7 @@ function dfc.respawnLoop()
         else
             groupDead = true
         end
-        if groupDead then
+        if groupDead and not SBLOCKER.blockedGroups[groupName] then
             env.info("Respawn group " .. groupName .. " is dead, scheduling respawn", false)
             timer.scheduleFunction(dfc.respawnRespawnGroup, {groupName = groupName, respawnTime = respawnTime}, timer:getTime() + respawnTime)
             RESPAWNGROUPS[groupName] = nil
@@ -2052,6 +2052,11 @@ end
 --groupName, respawnTime
 function dfc.respawnRespawnGroup(param)
     local newGroupName = mist.cloneGroup(param.groupName, true).name
+    if PERSISTENTDEATHGROUPS[param.groupName] then
+        PERSISTENTDEATHGROUPS[param.groupName] = nil
+        PERSISTENTDEATHGROUPS[newGroupName] = true
+        env.info("Respawn group " .. newGroupName .. " added to persistent death groups\nRespawn group " .. param.groupName .. " removed from persistent death groups", false)
+    end
     RESPAWNGROUPS[newGroupName] = param.respawnTime
     env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.respawnTime, false)
 end
