@@ -1,11 +1,13 @@
-sblocker = {}
 SBLOCKER = {}
-
 SBLOCKER.blockedGroups = {}
+SBLOCKER.originalGroups = {}
+
+local sblocker = {}
 sblocker.tolerance = 0.1 -- 10% of initial size
 
 local missionName = env.mission["date"]["Year"]
 local spawnState = lfs.writedir() .. [[Logs/]] .. 'spawns'..missionName..'.txt'
+
 function sblocker.loop()
     for groupName, _ in pairs(PERSISTENTDEATH) do
         local checkgroup = Group.getByName(groupName)
@@ -19,18 +21,18 @@ function sblocker.loop()
         end
         if groupDead then
             SBLOCKER.blockedGroups[groupName] = true
-            env.info("SBLOCKER: Group " .. groupName .. " is dead and in the persistent death list, adding to blocked respawn groups.")
+            env.info("SBLOCKER: Group " .. groupName .. " is dead and in the persistent death list, adding to blocked respawn groups.", false)
             sblocker.savePersistance()
         end
     end
-    timer.scheduleFunction(sblocker.loop, nil, timer.getTime() + 60) -- check every 60 seconds
+    timer.scheduleFunction(sblocker.loop, nil, timer.getTime() + 10)
 end
 function sblocker.killOnRestart()
     for groupName, _ in pairs(SBLOCKER.blockedGroups) do
         local checkgroup = Group.getByName(groupName)
         if checkgroup then
             checkgroup:destroy()
-            env.info("SBLOCKER: Group " .. groupName .. " is blocked and has been destroyed on mission restart.")
+            env.info("SBLOCKER: Group " .. groupName .. " is blocked and has been destroyed on mission restart.", false)
         end
     end
 end
@@ -50,8 +52,17 @@ function sblocker.savePersistance()
     f:write("return " .. Utils.saveToString(SBLOCKER.blockedGroups))
     f:close()
 end
+function sblocker.clearPersistance()
+    local spawnFile = spawnState
+    local f = io.open(spawnFile, 'w')
+    if f then
+        f:write("return {}")
+        f:close()
+    end
+end
 
 env.info("SBLOCKER: Persistent Respawn Blocker loaded.", false)
+sblocker.originalGroups = PERSISTENTDEATH -- Keep original groups for ME restart purposes
 sblocker.loadPersistance()
 sblocker.killOnRestart()
 sblocker.loop()

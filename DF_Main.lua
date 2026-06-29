@@ -842,6 +842,9 @@ function dfc.blankData()
     dfc.emptyFirebases()
     CpyControl.wipeCompanies()
     BattleControl.endMission()
+    if PERSISTENTDEATH then
+        SBLOCKER.clearPersistance()
+    end
 end
 function DFS.endMission(coalitionId)
     dfc.endMission(coalitionId)
@@ -2053,7 +2056,9 @@ end
 function dfc.respawnRespawnGroup(param)
     local newGroupName = mist.cloneGroup(param.groupName, true).name
     if PERSISTENTDEATH[param.groupName] then
-        PERSISTENTDEATH[param.groupName] = nil
+        if not SBLOCKER.originalGroups[param.groupName] then
+            PERSISTENTDEATH[param.groupName] = nil -- do not remove the original group name (needed for restart)
+        end
         PERSISTENTDEATH[newGroupName] = true
         env.info("Respawn group " .. newGroupName .. " added to persistent death groups\nRespawn group " .. param.groupName .. " removed from persistent death groups", false)
     end
