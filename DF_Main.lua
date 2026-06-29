@@ -2034,17 +2034,23 @@ function dfc.mainLoop()
     end
 end
 function dfc.respawnLoop()
+    local blockedGroups = {}
+    if PERSISTENTDEATH and SBLOCKER then
+        SBLOCKER.run()
+        blockedGroups = SBLOCKER.blockedGroups
+    end
     for groupName, respawnTime in pairs(RESPAWNGROUPS) do
         local checkgroup = Group.getByName(groupName)
         local groupDead = false
         if checkgroup then
-            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.2 then
+            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.4 then
                 groupDead = true
             end
         else
             groupDead = true
         end
-        if groupDead and not SBLOCKER.blockedGroups[groupName] then
+        if groupDead and not blockedGroups[groupName] then
+            env.info("blockedGroups: " .. Utils.dump(blockedGroups), false)
             env.info("Respawn group " .. groupName .. " is dead, scheduling respawn", false)
             timer.scheduleFunction(dfc.respawnRespawnGroup, {groupName = groupName, respawnTime = respawnTime}, timer:getTime() + respawnTime)
             RESPAWNGROUPS[groupName] = nil
@@ -2054,13 +2060,17 @@ function dfc.respawnLoop()
 end
 --groupName, respawnTime
 function dfc.respawnRespawnGroup(param)
+    env.info("RespawnGroups" ..Utils.dump(RESPAWNGROUPS), false)
     local newGroupName = mist.cloneGroup(param.groupName, true).name
-    if PERSISTENTDEATH[param.groupName] then
-        if not SBLOCKER.originalGroups[param.groupName] then
-            PERSISTENTDEATH[param.groupName] = nil -- do not remove the original group name (needed for restart)
+    if PERSISTENTDEATH then
+        if PERSISTENTDEATH[param.groupName] then
+            if not SBLOCKER.originalGroups[param.groupName] then -- do not remove the original group name (needed for restart)
+                PERSISTENTDEATH[param.groupName] = nil
+                env.info("Respawn group " .. param.groupName .. " removed from persistent death groups", false)
+            end
+            PERSISTENTDEATH[newGroupName] = true
+            env.info("Respawn group " .. newGroupName .. " added to persistent death groups", false)
         end
-        PERSISTENTDEATH[newGroupName] = true
-        env.info("Respawn group " .. newGroupName .. " added to persistent death groups\nRespawn group " .. param.groupName .. " removed from persistent death groups", false)
     end
     RESPAWNGROUPS[newGroupName] = param.respawnTime
     env.info("Respawn group " .. newGroupName .. " added, respawn time is " .. param.respawnTime, false)

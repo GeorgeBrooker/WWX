@@ -8,7 +8,7 @@ sblocker.tolerance = 0.1 -- 10% of initial size
 local missionName = env.mission["date"]["Year"]
 local spawnState = lfs.writedir() .. [[Logs/]] .. 'spawns'..missionName..'.txt'
 
-function sblocker.loop()
+function SBLOCKER.run()
     for groupName, _ in pairs(PERSISTENTDEATH) do
         local checkgroup = Group.getByName(groupName)
         local groupDead = false
@@ -21,11 +21,11 @@ function sblocker.loop()
         end
         if groupDead then
             SBLOCKER.blockedGroups[groupName] = true
+            RESPAWNGROUPS[groupName] = nil
             env.info("SBLOCKER: Group " .. groupName .. " is dead and in the persistent death list, adding to blocked respawn groups.", false)
             sblocker.savePersistance()
         end
     end
-    timer.scheduleFunction(sblocker.loop, nil, timer.getTime() + 10)
 end
 function sblocker.killOnRestart()
     for groupName, _ in pairs(SBLOCKER.blockedGroups) do
@@ -65,4 +65,3 @@ env.info("SBLOCKER: Persistent Respawn Blocker loaded.", false)
 sblocker.originalGroups = PERSISTENTDEATH -- Keep original groups for ME restart purposes
 sblocker.loadPersistance()
 sblocker.killOnRestart()
-sblocker.loop()
