@@ -22,6 +22,7 @@ function SBLOCKER.run()
         if groupDead then
             SBLOCKER.blockedGroups[groupName] = true
             RESPAWNGROUPS[groupName] = nil
+            PERSISTENTDEATH[groupName] = nil
             env.info("SBLOCKER: Group " .. groupName .. " is dead and in the persistent death list, adding to blocked respawn groups.", false)
             sblocker.savePersistance()
         end
@@ -62,6 +63,6 @@ function sblocker.clearPersistance()
 end
 
 env.info("SBLOCKER: Persistent Respawn Blocker loaded.", false)
-sblocker.originalGroups = PERSISTENTDEATH -- Keep original groups for ME restart purposes
+SBLOCKER.originalGroups = PERSISTENTDEATH -- Keep original groups for ME restart purposes
 sblocker.loadPersistance()
 sblocker.killOnRestart()
