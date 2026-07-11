@@ -2040,7 +2040,6 @@ function dfc.populateRespawnTemplate()
     end
 end
 function dfc.respawnLoop()
-    local blockedGroups = {}
     if PERSISTENTDEATH and SBLOCKER then
         SBLOCKER.run()
     end
@@ -2048,7 +2047,7 @@ function dfc.respawnLoop()
         local checkgroup = Group.getByName(groupName)
         local groupDead = false
         if checkgroup then
-            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.4 then
+            if checkgroup:getSize()/checkgroup:getInitialSize() <= 0.5 then
                 groupDead = true
             end
         else
