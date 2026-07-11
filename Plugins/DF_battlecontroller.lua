@@ -126,11 +126,13 @@ function BattleControl.getClosestBp(location)
     local closestBp = -1
     for bpId, values in pairs(battlePositions) do
         local distanceToBp = Utils.PointDistance(location, values.point)
+        env.info("Distance to BP-"..bpId.." is "..distanceToBp, false)
         if distance == -1 or distanceToBp < distance then
             closestBp = values.id
             distance = distanceToBp
         end
     end
+    env.info("Closest BP is BP-"..closestBp.." at a distance of "..distance, false)
     return closestBp, distance
 end
 function BattleControl.getNearestDepotFromBP(bpId, c)

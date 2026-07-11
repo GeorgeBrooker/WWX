@@ -2307,6 +2307,7 @@ function csb.closestBpTo(pos)
         local bpPoint = BattleControl.getBPPoint(i)
         if bpPoint then
             local dist = Utils.PointDistance(bpPoint,pos)
+            env.info("CSARBOT: BP-" .. i .. " is " .. dist .. "m from point (" .. pos.x .. "," .. pos.z .. "), closestBPDist = " .. closestBPDist, false)
             if dist < closestBPDist then
                 closestBPDist = dist
                 closestBPId = i
@@ -2317,6 +2318,11 @@ function csb.closestBpTo(pos)
         direction = Utils.relativeCompassBearing(pos,BattleControl.getBPPoint(closestBPId))
     end
     closestBPDist = math.floor((closestBPDist/1000)+0.5)
+    if closestBPId then
+        env.info("CSARBOT: Closest BP to point (" .. pos.x .. "," .. pos.z .. ") is BP-" .. closestBPId .. " at " .. closestBPDist .. "km " .. direction, false)
+    else
+        env.info("CSARBOT: No BPs found for point (" .. pos.x .. "," .. pos.z .. ")", false)
+    end
     return closestBPId, closestBPDist, direction
 end
 function CSB.closestBpToCAS(pos)
