@@ -2303,11 +2303,12 @@ function csb.closestBpTo(pos)
     local closestBPDist = math.huge
     local closestBPId = nil
     local direction = ""
+    env.info("csb.closestBpTo: bpcount = " .. bpCount, false)
     for i = 1,bpCount do
         local bpPoint = BattleControl.getBPPoint(i)
         if bpPoint then
             local dist = Utils.PointDistance(bpPoint,pos)
-            env.info("CSARBOT: BP-" .. i .. " is " .. dist .. "m from point (" .. pos.x .. "," .. pos.z .. "), closestBPDist = " .. closestBPDist, false)
+            env.info("csb.closestBpTo: BP-" .. i .. " is " .. dist .. "m from point (" .. pos.x .. "," .. pos.z .. "), closestBPDist = " .. closestBPDist, false)
             if dist < closestBPDist then
                 closestBPDist = dist
                 closestBPId = i
@@ -2319,9 +2320,9 @@ function csb.closestBpTo(pos)
     end
     closestBPDist = math.floor((closestBPDist/1000)+0.5)
     if closestBPId then
-        env.info("CSARBOT: Closest BP to point (" .. pos.x .. "," .. pos.z .. ") is BP-" .. closestBPId .. " at " .. closestBPDist .. "km " .. direction, false)
+        env.info("csb.closestBpTo: Closest BP to point (" .. pos.x .. "," .. pos.z .. ") is BP-" .. closestBPId .. " at " .. closestBPDist .. "km " .. direction, false)
     else
-        env.info("CSARBOT: No BPs found for point (" .. pos.x .. "," .. pos.z .. ")", false)
+        env.info("csb.closestBpTo: No BPs found for point (" .. pos.x .. "," .. pos.z .. ")", false)
     end
     return closestBPId, closestBPDist, direction
 end
