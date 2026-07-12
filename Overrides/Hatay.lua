@@ -20,7 +20,8 @@ REAPER = true
 INTERCEPT = true
 SHIPPING = true
 CAPTURE = false
-VIGGENDTCENFORCEMENT = true
+COMPANIESIGNOREROADS = true
+VIGGENDTCENFORCEMENT = false
 CAVICS = {
     [1] = {
         [1] = {text = "AT - BRDM", typename = "BRDM-2_malyutka"},

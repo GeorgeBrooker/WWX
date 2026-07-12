@@ -2153,6 +2153,10 @@ function CSB.createCasEvac(coalitionId, bpId, newCoalitionId)
     table.insert(casEvacMissions[coalitionId], ceMission)
     genCasEvacCounter = genCasEvacCounter + 1
     local nearestBp, dist, dir = csb.closestBpTo(spawnPoint)
+    if nearestBp == nil then
+        env.info("create casevac error, nearest BP is nil. Triggered from BP: " .. bpId, false)
+        return
+    end
     local args = {}
     args.groupName = ceMission.groupName
     args.freq = ceMission.freq
