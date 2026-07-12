@@ -66,6 +66,7 @@ Airframes = {
 			["Mirage-F1EE"] = true,
 			["Mirage-F1BE"] = true,
 			["F-5E-3"] = true,
+			["F-15C"] = true,
 			["F-15ESE"] = true,
             ["F-16C_50"] = true,
 			["FA-18C_hornet"] = true, --land
