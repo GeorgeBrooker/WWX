@@ -170,7 +170,9 @@ function BattleControl.getAllBPIds()
 end
 function BattleControl.getBPPoint(bpId)
     env.info("BattleControl.getBPPoint: bpId = " .. bpId, false)
-    env.info("BattleControl.getBPPoint: battlePositions[bpIds] = " .. Utils.dump(battlePositions) .. "BpIDs=" .. Utils.dump(bpIds), false)
+    env.info("BattleControl.getBPPoint: battlePositions[bpIds] = " .. Utils.dump(battlePositions), false)
+    env.info("BpIDs = ".. Utils.dump(bpIds), false)
+    env.info("BattleControl.getBPPoint: battlePositions[bpIds[bpId]] = " .. Utils.dump(battlePositions[bpIds[bpId]]), false)
     local returnPoint = nil
     local position = battlePositions[bpIds[bpId]]
     if position then
