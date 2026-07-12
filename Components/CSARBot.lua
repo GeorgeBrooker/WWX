@@ -2307,12 +2307,10 @@ function csb.closestBpTo(pos)
     local closestBPDist = math.huge
     local closestBPId = nil
     local direction = ""
-    env.info("csb.closestBpTo: bpcount = " .. bpCount, false)
     for i = 1,bpCount do
         local bpPoint = BattleControl.getBPPoint(i)
         if bpPoint then
             local dist = Utils.PointDistance(bpPoint,pos)
-            env.info("csb.closestBpTo: BP-" .. i .. " is " .. dist .. "m from point (" .. pos.x .. "," .. pos.z .. "), closestBPDist = " .. closestBPDist, false)
             if dist < closestBPDist then
                 closestBPDist = dist
                 closestBPId = i
