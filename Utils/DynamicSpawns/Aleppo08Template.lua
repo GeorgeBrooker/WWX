@@ -108,6 +108,7 @@ Airframes = {
 			["AV8BNA"] = true,
 			["FA-18C_hornet"] = true,
 			["F-14B"] = true,
+			["F-14BU"] = true,
         },
         farp = {
             ["SA342L"] = true,
