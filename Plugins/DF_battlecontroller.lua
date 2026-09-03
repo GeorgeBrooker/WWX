@@ -481,8 +481,8 @@ function bc.executeAttack(filedAttackPlan)
         if #DFS.status[filedAttackPlan.attackingCoalition].spawns.fd > 0 then
             local totalFrontSupTable = {
                 [1] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[1],
-                [2] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[2],
-                [3] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[1] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[3],
+                [2] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[2] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[2],
+                [3] = DFS.status[filedAttackPlan.attackingCoalition].supply.front[3] + DFS.status[filedAttackPlan.attackingCoalition].supply.frontsurplus[3],
             }
             local supplyRequiredForCurrentCompanies = {
                 [1] = 0,
