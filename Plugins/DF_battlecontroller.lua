@@ -514,7 +514,8 @@ function bc.executeAttack(filedAttackPlan)
                 env.info("Cannot afford attack, lowering tiers", false)
                 loopTries = loopTries + 1
                 if loopTries > 100 then
-                    trigger.action.outText("INFINITE LOOP REEEEEEEEE", 10, false)
+                    env.info("INFINITE LOOP REEEEEEEEE-scheduling attack", false)
+                    bc.rescheduleAttack(filedAttackPlan)
                     return
                 end
                 for i = 1, #filedAttackPlan.targetBPs do
