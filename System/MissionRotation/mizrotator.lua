@@ -7,7 +7,7 @@ local MISSION_ID_TO_PATH = {
     [1] = "C:\\Missions\\Pacific WW2 - Battle of Tinian v1.2.3.miz",
     [2] = "C:\\Missions\\WWX2 - Battle of Cyprus Part 2 v1.0.9.miz",
     [3] = "C:\\Missions\\WWX2 - Battle of Germany v1.3.4.miz",
-    [4] = "C:\\Missions\\Eastern Front WW2  - Battle of Kuban 1946 v1.2.1.miz"
+    [4] = "C:\\Missions\\Eastern Front WW2  - Battle of Kuban 1946 v1.2.1.miz",
     [5] = "C:\\Missions\\WWX2 - Battle of Lebanon v1.9.11.miz",
     [7] = "C:\\Missions\\WWX2 - Battle of Aleppo 1.0.8.miz",
     [8] = "C:\\Missions\\WWX2 - Battle of Guam65 v1.0.4a.miz",
@@ -93,4 +93,8 @@ if mizrot.fileExists("System/MissionRotation/config/rotation.lua") then
             net.load_mission(ROTATION[mission_number])
         end
     end
+end
+
+if DEBUG then
+    timer.scheduleFunction(MizRot.endMission, nil, timer:getTime() + 30)
 end
