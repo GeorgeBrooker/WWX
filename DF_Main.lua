@@ -866,6 +866,7 @@ function dfc.endMission(coalitionId)
     if WWEvents then WWEvents.campaignCompleted(coalitionId) end
     trigger.action.outText(winningTeam..' has won the battle! Mission will restart in 2 minutes.', 120)
     dfc.blankData()
+    timer.scheduleFunction(MizRot.endMission, nil, timer:getTime() + 100)
 end
 --INIT FUNCS
 function dfc.emptyFirebases()
