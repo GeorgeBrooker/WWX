@@ -68,7 +68,7 @@ if CAP and PROTECT_HELICOPTERS then
    assert(loadfile(pathToWWX.."Plugins\\DF_irondome.lua"))()
 end
 env.info("Loading server system plugins", false)
-assert(loadfile(pathToWWX.."System/MissionRotation/mizrotator.lua"))()
+assert(loadfile(pathToWWX.."System\\MissionRotation\\mizrotator.lua"))()
 env.info("Loading main", false)
 assert(loadfile(pathToWWX.."DF_Main.lua"))()
 --Things that need to load after DF_Main because they access global vars defined in that file
