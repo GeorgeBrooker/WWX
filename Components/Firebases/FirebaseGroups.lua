@@ -449,6 +449,17 @@ local baseUnitTemplates = {
         ["playerCanDrive"] = false,
     }
 }
+function fbg.copyTemplate(templateTable)
+    local newTable = {}
+    for k,v in pairs(templateTable) do
+        if type(v) == "table" then
+            newTable[k] = fbg.copyTemplate(v)
+        else
+            newTable[k] = v
+        end
+    end
+    return newTable
+end
 local unitTemplates = { -- Allow for per coalition overriding of any unit template.
     [1] = fbg.copyTemplate(baseUnitTemplates),
     [2] = fbg.copyTemplate(baseUnitTemplates)
@@ -601,15 +612,4 @@ function fbg.newGroupId()
     local newId = nextGroupId
     nextGroupId = nextGroupId+1
     return newId
-end
-function fbg.copyTemplate(templateTable)
-    local newTable = {}
-    for k,v in pairs(templateTable) do
-        if type(v) == "table" then
-            newTable[k] = fbg.copyTemplate(v)
-        else
-            newTable[k] = v
-        end
-    end
-    return newTable
 end
