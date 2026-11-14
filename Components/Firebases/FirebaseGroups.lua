@@ -462,8 +462,8 @@ if CUSTOM_ARTY then
     unitTemplates[2]["HOWITZER"]["type"] = CUSTOM_ARTY[2]
 end
 if NO_HELIPAD then
-    staticTemplates["helipad"]["shape_name"] = "FARP_SINGLE_02"
-    staticTemplates["helipad"]["type"] = "FARP_SINGLE_02"
+    staticTemplates["helipad"]["shape_name"] = "Invisible FARP"
+    staticTemplates["helipad"]["type"] = "Invisible FARP"
 end
 function FirebaseGroups.spawnPirateBoat(point, boatCoalition)
     local newGroupId = fbg.newGroupId()
