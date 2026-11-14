@@ -1851,14 +1851,15 @@ function dfc.unloadTrain(coalitionId)
     dfc.increaseRearSupply({coalitionId = coalitionId, amount = DFS.status.shippingResupplyAmts[DFS.supplyType.EQUIPMENT], type = DFS.supplyType.EQUIPMENT})
 end
 function dfc.spawnTrain(coalitionId)
+    local locomotives = TRAIN_TYPES or {
+        [1] = "Locomotive", -- Red
+        [2] = "ES44AH" -- Blue
+    }
     DFS.status[coalitionId].spawns.train.loaded = true
     DFS.status[coalitionId].spawns.train.name = nil
     local startPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].train).point
     local endPoint = trigger.misc.getZone(DFS.spawnNames[coalitionId].trainDeliver).point
-    local locoType = "Locomotive"
-    if coalitionId == 2 then
-        locoType = "ES44AH"
-    end
+    local locoType = locomotives[coalitionId]
     local groupWaypoints = SpawnFuncs.createWPListFromPoints({[1] = startPoint, [2] = endPoint}, 100)
     local cpyGroupTable = SpawnFuncs.createGroupTableFromListofUnitTypes(1, 4, {[1] = "Train"}, groupWaypoints)
     cpyGroupTable["units"][1]["wagons"][1] = locoType
