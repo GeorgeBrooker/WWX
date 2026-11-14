@@ -449,9 +449,9 @@ local baseUnitTemplates = {
         ["playerCanDrive"] = false,
     }
 }
-local unitTemplates = { -- Allow for per colaition overriding of any unit template.
-    [1] = baseUnitTemplates,
-    [2] = baseUnitTemplates
+local unitTemplates = { -- Allow for per coalition overriding of any unit template.
+    [1] = fbg.copyTemplate(baseUnitTemplates),
+    [2] = fbg.copyTemplate(baseUnitTemplates)
 }
 if PAIDTHEPRICE then
    unitTemplates[1]["HOWITZER"]["type"] = "M2A1-105"
